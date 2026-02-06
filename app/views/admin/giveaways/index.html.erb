@@ -1,0 +1,193 @@
+<%# app/views/admin/giveaways/show.html.erb %>
+<div class="min-h-screen bg-gray-900 text-gray-100 p-8">
+  <% if @giveaway.present? %>
+    <div data-controller="giveaway-refresh">
+      
+      <%# --- HEADER --- %>
+      <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-6">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-bold text-white"><%= @giveaway.title %></h1>
+            <%= link_to edit_admin_giveaway_path(@giveaway), class: "text-gray-500 hover:text-indigo-400" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            <% end %>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-semibold mt-2 inline-block 
+            <%= @giveaway.open? ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300' %>">
+            <%= @giveaway.status.upcase %>
+          </span>
+        </div>
+        
+        <div class="flex space-x-4">
+          <% if @giveaway.open? %>
+            <%= button_to close_admin_giveaway_path(@giveaway), method: :patch, 
+                class: "bg-yellow-600 hover:bg-yellow-500 text-white px-6 py-2 rounded-lg font-bold transition" do %>
+              Lock Entries
+            <% end %>
+          <% elsif @giveaway.closed? && @giveaway.winner.nil? %>
+            <%= button_to draw_admin_giveaway_path(@giveaway), method: :patch,
+                class: "bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold animate-pulse shadow-lg" do %>
+              Draw Winner
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <%# --- WINNER CIRCLE (NEW) --- %>
+      <% if @giveaway.winner.present? %>
+        <div class="mb-8 bg-gradient-to-r from-indigo-900 to-purple-900 rounded-xl shadow-2xl border border-indigo-500/50 p-6 flex justify-between items-center relative overflow-hidden">
+          <div class="absolute top-0 right-0 -mt-4 -mr-4 text-9xl text-white opacity-5 select-none">🏆</div>
+          
+          <div class="z-10">
+            <h2 class="text-indigo-200 text-sm uppercase tracking-widest font-bold mb-1">Giveaway Winner</h2>
+            <div class="text-4xl font-extrabold text-white flex items-center gap-3">
+              <span><%= @giveaway.winner.username %></span>
+              <span class="text-lg bg-indigo-800 px-3 py-1 rounded text-indigo-200 border border-indigo-600">
+                Ticket #<%= @giveaway.winner_entry&.id || '?' %>
+              </span>
+            </div>
+            <p class="text-indigo-300 mt-2 text-sm">Winning probability: <%= number_to_percentage(@giveaway.win_probability(@giveaway.winner), precision: 2) %></p>
+          </div>
+
+          <div class="z-10 bg-black/30 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+            <p class="text-xs text-gray-300 mb-2 text-center">Winner unavailable?</p>
+            <%= button_to reroll_admin_giveaway_path(@giveaway), method: :patch, 
+                data: { turbo_confirm: "Are you sure? This will remove the current winner and pick a new one." },
+                class: "bg-red-600/80 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 transition" do %>
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+               Reroll Winner
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# --- STATS GRID --- %>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <%= render partial: 'stat_card', locals: { label: "Total Tickets", value: @total_tickets, sub: "Pool Size" } %>
+        <%= render partial: 'stat_card', locals: { label: "Unique Entries", value: @unique_users, sub: "Participants" } %>
+        <%= render partial: 'stat_card', locals: { label: "Avg Depth", value: @avg_tickets_per_user, sub: "Tickets/User" } %>
+        <%= render partial: 'stat_card', locals: { label: "New Viewers", value: @new_participants, sub: "Retention Impact" } %>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <%# --- LIVE FEED --- %>
+        <div class="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
+          <div class="p-4 bg-gray-700 border-b border-gray-600 flex justify-between">
+            <h3 class="font-bold">Live Participation Feed</h3>
+            <span class="text-xs text-gray-400">Updates in real-time</span>
+          </div>
+          
+          <div class="overflow-y-auto max-h-[600px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-gray-900 text-gray-400 text-xs uppercase sticky top-0">
+                <tr>
+                  <th class="p-4">User</th>
+                  <th class="p-4 text-center">Tickets</th>
+                  <th class="p-4">Win Probability</th>
+                  <th class="p-4">Joined</th>
+                </tr>
+              </thead>
+              <tbody id="giveaway_entries_list">
+                <%= turbo_stream_from "giveaway_#{@giveaway.id}_entries" %>
+                <% if @entries.any? %>
+                  <%= render @entries %>
+                <% else %>
+                  <tr>
+                    <td colspan="4" class="p-12 text-center text-gray-500 italic">No entries yet. Tell the chat to type !fellowship!</td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <%# --- SIDEBAR --- %>
+        <div class="space-y-6">
+          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <h3 class="font-bold mb-4 text-indigo-400">Eligibility Filters</h3>
+            <ul class="text-sm space-y-3">
+              <li class="flex justify-between"><span>Min Karma:</span> <span class="text-white"><%= @giveaway.min_karma %></span></li>
+              <li class="flex justify-between"><span>Min Fame:</span> <span class="text-white"><%= @giveaway.min_fame %></span></li>
+              <li class="flex justify-between"><span>6-Month Lock:</span> <span class="text-green-500">Active</span></li>
+            </ul>
+          </div>
+
+          <div class="bg-indigo-900/20 p-6 rounded-xl border border-indigo-500/30">
+            <h3 class="font-bold mb-2 text-indigo-300 italic">Note</h3>
+            <p class="text-xs text-indigo-200 leading-relaxed">
+              The current concentration of tickets indicates a <strong><%= (@avg_tickets_per_user > 5 ? 'High' : 'Low') %> Whale Density</strong>. 
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <%# --- GIVEAWAY HISTORY (NEW) --- %>
+      <div class="mt-12 pt-8 border-t border-gray-800">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-300">Giveaway History</h2>
+          <%= link_to new_admin_giveaway_path, class: "bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition" do %>
+            + New Giveaway
+          <% end %>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
+              <tr>
+                <th class="px-6 py-4">Title</th>
+                <th class="px-6 py-4">Date</th>
+                <th class="px-6 py-4">Status</th>
+                <th class="px-6 py-4">Type</th>
+                <th class="px-6 py-4">Winner</th>
+                <th class="px-6 py-4">Entries</th>
+                <th class="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+              <% @all_giveaways.each do |g| %>
+                <tr class="<%= 'bg-indigo-900/20' if g == @giveaway %> hover:bg-gray-700/50 transition">
+                  <td class="px-6 py-4 font-medium text-white">
+                    <%= link_to g.title, admin_giveaway_path(g), class: "hover:underline hover:text-indigo-400" %>
+                  </td>
+                  <td class="px-6 py-4 text-gray-400"><%= g.created_at.strftime("%b %d, %Y") %></td>
+                  <td class="px-6 py-4">
+                     <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                      <%= g.open? ? 'bg-green-900 text-green-300' : 'text-gray-400 bg-gray-900' %>">
+                      <%= g.status %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-gray-400"><%= g.giveaway_type %></td>
+                  <td class="px-6 py-4 text-indigo-300 font-mono"><%= g.winner&.username || '-' %></td>
+                  <td class="px-6 py-4 text-gray-400"><%= g.giveaway_entries.count %></td>
+                  <td class="px-6 py-4 text-right space-x-2">
+                    <%= link_to "Edit", edit_admin_giveaway_path(g), class: "text-indigo-400 hover:text-indigo-300" %>
+                    <%= link_to "Delete", admin_giveaway_path(g), data: { turbo_method: :delete, turbo_confirm: "Are you sure? This cannot be undone." }, class: "text-red-500 hover:text-red-400" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  <% else %>
+    <%# --- BLANK STATE --- %>
+    <div class="flex flex-col items-center justify-center h-[70vh] text-center">
+      <div class="bg-gray-800 p-12 rounded-3xl border border-gray-700 shadow-2xl max-w-lg">
+        <div class="text-6xl mb-6">🎫</div>
+        <h2 class="text-2xl font-bold text-white mb-2">No Giveaways Found</h2>
+        <p class="text-gray-400 mb-8">Ready to start a new fellowship? Create a giveaway to begin.</p>
+        
+        <%= link_to new_admin_giveaway_path, class: "bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2" do %>
+          <span>Create First Giveaway</span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

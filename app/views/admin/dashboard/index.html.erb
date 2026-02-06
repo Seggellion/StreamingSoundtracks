@@ -1,0 +1,68 @@
+<%# app/views/admin/dashboard/index.html.erb %>
+
+<div class="min-h-screen bg-[#FDF5E6] p-8 font-serif text-[#3E2723]">
+  <header class="mb-8 border-b-2 border-[#8B4513] pb-4 flex justify-between items-center">
+    <h1 class="text-4xl font-bold italic">The Great Smial Dashboard</h1>
+    <div class="text-sm italic">"Not all those who wander are lost, but the bot shouldn't be."</div>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-[#FFF8DC] border-2 border-[#D2B48C] p-6 rounded-lg shadow-md relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-2 opacity-10">
+          <i class="fas fa-leaf text-4?xl text-green-800"></i>
+        </div>
+        <h2 class="text-2xl font-bold mb-4 border-b border-[#D2B48C]">At a Glance in the Shire</h2>
+        <div class="flex gap-8 mb-6">
+          <div class="text-center">
+            <span class="block text-3xl font-bold text-green-800">1</span>
+            <span class="text-sm uppercase tracking-widest">Tale</span>
+          </div>
+          <div class="text-center">
+            <span class="block text-3xl font-bold text-green-800">2</span>
+            <span class="text-sm uppercase tracking-widest">Maps</span>
+          </div>
+          <div class="text-center">
+            <span class="block text-3xl font-bold text-green-800">1</span>
+            <span class="text-sm uppercase tracking-widest">Rumor</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <%= button_to "Composer Theme", set_theme_path(theme: 'Composer'), class: "bg-[#556B2F] text-white px-4 py-2 rounded-full hover:bg-[#6B8E23] transition" %>
+          <%= button_to "Dusk Theme", set_theme_path(theme: 'Dusk'), class: "bg-[#2F4F4F] text-white px-4 py-2 rounded-full hover:bg-[#3E5E5E] transition" %>
+        </div>
+      </div>
+
+      <div class="bg-white border-2 border-green-700 p-6 rounded-lg shadow-inner">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span class="text-green-700">◈</span> Twitch Bot Machinery
+        </h2>
+
+        <%= render "admin/dashboard/bot_status", setting: SystemSetting.instance %>
+
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-[#FAF3E0] border-2 border-[#8B4513] p-6 rounded-lg shadow-md transform rotate-1">
+        <h2 class="text-xl font-semibold mb-4 border-b border-[#8B4513]">Quick Parchment</h2>
+        <form>
+          <input type="text" placeholder="Title of your tale..." class="w-full mb-3 bg-transparent border-b border-[#D2B48C] focus:outline-none italic">
+          <textarea rows="4" placeholder="What's on your mind, Master Baggins?" class="w-full bg-transparent border-none focus:outline-none resize-none italic"></textarea>
+          <button class="w-full bg-[#8B4513] text-white py-2 rounded hover:bg-[#A0522D]">Seal with Wax</button>
+        </form>
+      </div>
+
+      <div class="bg-[#F5F5DC] p-6 rounded-lg border border-[#D2B48C] text-sm">
+        <h2 class="text-lg font-bold mb-4 text-[#5D4037]">📜 RailPress Gazettes</h2>
+        <ul class="space-y-3">
+          <li><a href="#" class="text-[#8B4513] hover:underline font-bold">The Month in RailPress: Nov 2026</a></li>
+          <li><a href="#" class="text-[#8B4513] hover:underline italic">Akismet: Orc-protection for your comments updated.</a></li>
+          <li><a href="#" class="text-[#8B4513] hover:underline underline-offset-4 decoration-dotted">WPTavern: New Elven plugins spotted in the wild.</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

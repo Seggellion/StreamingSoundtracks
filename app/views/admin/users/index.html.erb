@@ -1,0 +1,93 @@
+<div class="container mx-auto my-8 px-4">
+  <div class="sm:flex sm:items-center sm:justify-between mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Users</h1>
+    <p class="mt-2 text-sm text-gray-700">A list of all users sorted by most recent activity.</p>
+  </div>
+
+  <div class="mt-8 flex flex-col">
+    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">User</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Karma</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fame</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Wallet</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Last Updated</th>
+                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                  <span class="sr-only">Edit</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <% @users.each do |user| %>
+                <tr>
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                    <div class="flex items-center">
+                      <div class="h-10 w-10 flex-shrink-0">
+                        <% if user.avatar.present? %>
+                          <img class="h-10 w-10 rounded-full object-cover" src="<%= url_for(user.avatar) %>" alt="<%= user.username %>">
+                        <% else %>
+                          <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                            <%= user.username.first.upcase %>
+                          </div>
+                        <% end %>
+                      </div>
+                      <div class="ml-4">
+                        <div class="font-medium text-gray-900"><%= user.username %></div>
+                        <div class="text-gray-500 text-xs font-mono"><%= user.uid %></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                      <%= user.user_type.titleize %>
+                    </span>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 font-medium">
+                    <%= user.karma %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <%= user.fame %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-green-600 font-semibold">
+                    <%= number_to_currency(user.wallet) %>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <%= user.updated_at.strftime("%b %d, %Y %H:%M") %>
+                  </td>
+
+
+
+          <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                  <div class="flex items-center justify-end gap-3">
+                    
+                    <% if user.banned_from_giveaways? %>
+                      <%= button_to 'Unban', toggle_giveaway_ban_admin_user_path(user), 
+                          method: :patch, 
+                          class: "text-green-600 hover:text-green-900 bg-transparent border-0 cursor-pointer font-medium p-0 text-sm",
+                          title: "User is currently banned. Click to restore access." %>
+                    <% else %>
+                      <%= button_to 'Ban', toggle_giveaway_ban_admin_user_path(user), 
+                          method: :patch, 
+                          class: "text-red-600 hover:text-red-900 bg-transparent border-0 cursor-pointer font-medium p-0 text-sm",
+                          form: { onsubmit: "return confirm('Are you sure? This will silently prevent #{user.username} from winning future giveaways.');" },
+                          title: "Silently ban from winning giveaways" %>
+                    <% end %>
+
+                    <span class="text-gray-300">|</span>
+                    <%= link_to 'Edit', edit_admin_user_path(user), class: 'text-indigo-600 hover:text-indigo-900' %>
+                  </div>
+                </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

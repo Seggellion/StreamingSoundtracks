@@ -1,0 +1,9 @@
+
+@import 'bingo_card';
+
+@import 'fonts';
+
+body{
+    background-color:#00001a;
+    color: #aebd93;
+}

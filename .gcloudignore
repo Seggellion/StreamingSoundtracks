@@ -1,0 +1,7 @@
+.git
+.gitignore
+log/
+tmp/
+vendor/bundle
+node_modules/
+public/assets
