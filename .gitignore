@@ -10,6 +10,8 @@
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
+*.yaml
+.yaml*
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -42,3 +44,5 @@ config/gcs_keyfile.json
 *.sql
 
 cors.json
+gcs_key.json
+*.py

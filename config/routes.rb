@@ -51,6 +51,10 @@ end
     end
   end
 
+    namespace :api do
+      get 'next_track', to: 'tracks#next_track'
+    end
+
 
   # ------------------------------------------------------------
   # Theme switching (optional, CMS-level)
